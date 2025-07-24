@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>輸入自由報價</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="nav-buttons">
+    <button onclick="location.href='index.html'">輸入品項報價</button>
+    <button onclick="location.href='query.html'">查詢品項報價</button>
+    <button onclick="location.href='bulk.html'">輸入自由報價</button>
+    <button onclick="location.href='bulk_query.html'">查詢自由報價</button>
+  </div>
+  <h1>輸入自由報價</h1>
+  
+<label>廠商：<input id="bulk_vendor"></label><br/>
+<label>報價日：<input type="date" id="bulk_date"></label><br/>
+<label>品名：<input id="bulk_name"></label><br/>
+<textarea id="bulkText" rows="10" cols="80" placeholder="完整貼上報價文字"></textarea><br/>
+<button onclick="uploadBulk()">儲存自由格式報價</button>
+
+  <script type="module" src="firebase-app.js"></script>
+</body>
+</html>

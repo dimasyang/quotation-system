@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>輸入品項報價</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="nav-buttons">
+    <button onclick="location.href='index.html'">輸入品項報價</button>
+    <button onclick="location.href='query.html'">查詢品項報價</button>
+    <button onclick="location.href='bulk.html'">輸入自由報價</button>
+    <button onclick="location.href='bulk_query.html'">查詢自由報價</button>
+  </div>
+  <h1>輸入品項報價</h1>
+  
+<label>廠商：<input id="vendor"></label><br/>
+<label>報價日：<input type="date" id="date"></label><br/>
+<textarea id="rawText" rows="10" cols="80" placeholder="貼上報價文字，例如：71/90 ＄320..."></textarea><br/>
+<button onclick="parseAndUpload()">儲存報價</button>
+
+  <script type="module" src="firebase-app.js"></script>
+</body>
+</html>

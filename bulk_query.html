@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>查詢自由報價</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="nav-buttons">
+    <button onclick="location.href='index.html'">輸入品項報價</button>
+    <button onclick="location.href='query.html'">查詢品項報價</button>
+    <button onclick="location.href='bulk.html'">輸入自由報價</button>
+    <button onclick="location.href='bulk_query.html'">查詢自由報價</button>
+  </div>
+  <h1>查詢自由報價</h1>
+  
+<input id="bulkQueryInput" placeholder="輸入品名，例如：甜蝦" />
+<button onclick="queryBulk()">查詢</button>
+<div id="bulkQueryResult"></div>
+
+  <script type="module" src="firebase-app.js"></script>
+</body>
+</html>

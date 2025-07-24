@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>查詢品項報價</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="nav-buttons">
+    <button onclick="location.href='index.html'">輸入品項報價</button>
+    <button onclick="location.href='query.html'">查詢品項報價</button>
+    <button onclick="location.href='bulk.html'">輸入自由報價</button>
+    <button onclick="location.href='bulk_query.html'">查詢自由報價</button>
+  </div>
+  <h1>查詢品項報價</h1>
+  
+<input id="queryInput" placeholder="輸入品名與規格，例如：白蝦仁 71/90" />
+<button onclick="cloudQuery()">查詢</button>
+<table id="queryResult"></table>
+
+  <script type="module" src="firebase-app.js"></script>
+</body>
+</html>
