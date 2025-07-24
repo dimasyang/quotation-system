@@ -1,24 +1,73 @@
+
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html>
 <head>
   <meta charset="UTF-8" />
-  <title>輸入品項報價</title>
+  <title>海上先生 - 自動解析報價</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="nav-buttons">
-    <button onclick="location.href='index.html'">輸入品項報價</button>
-    <button onclick="location.href='query.html'">查詢品項報價</button>
-    <button onclick="location.href='bulk.html'">輸入自由報價</button>
-    <button onclick="location.href='bulk_query.html'">查詢自由報價</button>
-  </div>
-  <h1>輸入品項報價</h1>
-  
-<label>廠商：<input id="vendor"></label><br/>
-<label>報價日：<input type="date" id="date"></label><br/>
-<textarea id="rawText" rows="10" cols="80" placeholder="貼上報價文字，例如：71/90 ＄320..."></textarea><br/>
-<button onclick="parseAndUpload()">儲存報價</button>
+  <h2>海上先生 - 報價自動解析系統</h2>
+  <label>廠商名稱：<input id="vendor" /></label>
+  <label>報價日期：<input id="date" type="date" /></label><br /><br />
+  <textarea id="rawText" rows="15" cols="80" placeholder="請貼上整段報價資料"></textarea><br />
+  <button onclick="parseAndUpload()">解析並上傳</button>
+  <button onclick="location.href='query.html'">查詢報價</button>
+  <button onclick="location.href='bulk.html'">自由輸入</button>
+  <button onclick="location.href='bulk_query.html'">查詢自由報價</button>
+  <div id="status"></div>
 
-  <script type="module" src="firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAYmv1mt2QV0Ex0J1PlASfZjA3bdBvIJws",
+      authDomain: "haishang-a09c3.firebaseapp.com",
+      projectId: "haishang-a09c3",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    function parseAndUpload() {
+      const raw = document.getElementById("rawText").value;
+      const vendor = document.getElementById("vendor").value.trim();
+      const date = document.getElementById("date").value;
+      const lines = raw.split("\n");
+      const results = [];
+
+      const pattern = /^(\d{2,3}\/\d{2,3}|BKN)\s*[ \u3000]*[＄$]?\s*(\d+)/;
+
+      for (const line of lines) {
+        const match = line.trim().match(pattern);
+        if (match) {
+          results.push({
+            vendor,
+            date,
+            item: "白蝦仁",
+            spec: match[1],
+            price: parseInt(match[2])
+          });
+        }
+      }
+
+      const status = document.getElementById("status");
+      if (results.length === 0) {
+        status.innerText = "❌ 無法解析任何品項，請檢查格式";
+        return;
+      }
+
+      const batch = db.batch();
+      results.forEach(obj => {
+        const docRef = db.collection("prices").doc();
+        batch.set(docRef, obj);
+      });
+
+      batch.commit().then(() => {
+        status.innerText = `✅ 成功上傳 ${results.length} 筆報價資料`;
+      }).catch(err => {
+        status.innerText = "❌ 上傳失敗：" + err.message;
+      });
+    }
+  </script>
 </body>
 </html>
