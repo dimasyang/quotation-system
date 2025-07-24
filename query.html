@@ -8,8 +8,8 @@
 </head>
 <body>
   <h2>查詢報價</h2>
-  <label>輸入品名關鍵字：
-    <input id="keyword" placeholder="例如：白蝦仁、旭蟹" />
+  <label>輸入關鍵字（例如：白蝦仁71/90）：
+    <input id="keyword" placeholder="例如：白蝦仁71/90" />
   </label>
   <button onclick="search()">查詢</button>
   <button onclick="deleteSelected()">刪除所選資料</button>
@@ -30,7 +30,7 @@
     let cacheDocs = [];
 
     function search() {
-      const keyword = document.getElementById("keyword").value.trim();
+      const keyword = document.getElementById("keyword").value.trim().toLowerCase();
       const resultDiv = document.getElementById("result");
       resultDiv.innerHTML = "查詢中...";
       cacheDocs = [];
@@ -40,7 +40,8 @@
         querySnapshot.forEach((doc) => {
           const d = doc.data();
           const docID = doc.id;
-          if (keyword === "" || d.item?.includes(keyword) || d.spec?.includes(keyword)) {
+          const combined = (d.item || "") + (d.spec || "");
+          if (keyword === "" || combined.toLowerCase().includes(keyword)) {
             cacheDocs.push({ id: docID, data: d });
             html += `<tr>
               <td><input type="checkbox" value="${docID}"></td>
