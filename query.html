@@ -16,8 +16,20 @@
   <button onclick="location.href='index.html'">返回首頁</button>
   <div id="result"></div>
 
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js">
+    function toggleDateSort() {
+      sortDescending = !sortDescending;
+      search();
+    }
+    </script>
+    
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js">
+    function toggleDateSort() {
+      sortDescending = !sortDescending;
+      search();
+    }
+    </script>
+    
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyAYmv1mt2QV0Ex0J1PlASfZjA3bdBvIJws",
@@ -28,6 +40,7 @@
     const db = firebase.firestore();
 
     let cacheDocs = [];
+let sortDescending = true;
 
     function search() {
       const keyword = document.getElementById("keyword").value.trim().toLowerCase();
@@ -35,10 +48,19 @@
       resultDiv.innerHTML = "查詢中...";
       cacheDocs = [];
 
-      db.collection("prices").get().then((querySnapshot) => {
-        let html = "<table border='1'><tr><th><input type='checkbox' id='selectAll' onchange='toggleAll(this)'></th><th>品名</th><th>規格</th><th>價格</th><th>日期</th><th>廠商</th></tr>";
-        querySnapshot.forEach((doc) => {
-          const d = doc.data();
+      
+    db.collection("prices").get().then((querySnapshot) => {
+        const docs = [];
+        querySnapshot.forEach(doc => docs.push({ id: doc.id, data: doc.data() }));
+        docs.sort((a, b) => {
+            const da = new Date(a.data.date || "1970-01-01");
+            const db = new Date(b.data.date || "1970-01-01");
+            return sortDescending ? db - da : da - db;
+        });
+    
+        let html = "<table border='1'><tr><th><input type='checkbox' id='selectAll' onchange='toggleAll(this)'></th><th>品名</th><th>規格</th><th>價格</th><th onclick='toggleDateSort()' style='cursor:pointer;'>日期 🔽</th><th>廠商</th></tr>";
+        docs.forEach((doc) => {
+          const d = doc.data;
           const docID = doc.id;
           const combined = (d.item || "") + (d.spec || "");
           if (keyword === "" || combined.toLowerCase().includes(keyword)) {
@@ -84,6 +106,12 @@
         alert("❌ 刪除失敗：" + err.message);
       });
     }
-  </script>
+  
+    function toggleDateSort() {
+      sortDescending = !sortDescending;
+      search();
+    }
+    </script>
+    
 </body>
 </html>

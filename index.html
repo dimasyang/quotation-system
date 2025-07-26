@@ -40,18 +40,23 @@
       for (const line of lines) {
         const cleanLine = line.trim();
 
-        // 品名：找第一行包含「蝦仁」的詞語（最後一個字是仁）
+        // 品名：從所有匹配中抓最後一個「蝦仁」結尾的中文詞，支援空格
         if (!item && cleanLine.includes("蝦仁")) {
-          const matchItem = cleanLine.match(/([\u4e00-\u9fa5]{2,10}蝦仁)/);
+          
+    const matchItem = cleanLine.match(/([\u4e00-\u9fa5]{1,10}(?:\s)?白蝦仁|草蝦仁|沙蝦仁|海蝦仁|蝦仁)/);
+    
           if (matchItem) {
-            item = matchItem[1];
+            item = matchItem[1].replace(/\s/g, "");
           } else {
-            item = cleanLine;
+            const allMatches = [...cleanLine.matchAll(/([\u4e00-\u9fa5]{1,10}蝦仁)/g)];
+            if (allMatches.length > 0) {
+              item = allMatches[allMatches.length - 1][1];
+            }
           }
         }
 
-        // 規格價格：支援 21/25*445、21/25 ＄445、21/25 $ 445
-        let match = cleanLine.match(/^(\d{2,3}\/\d{2,3})\s*[*xＸ＊$＄]?\s*(\d{3})$/i);
+        // 規格+價格，支援 *, 空格, 元，件，括號後綴都略過
+        let match = cleanLine.match(/^(\d{2,3}\/\d{2,3})\s*[-*xＸ＊$＄]?\s*(\d{3})/i);
         if (match) {
           results.push({
             vendor,
@@ -63,8 +68,8 @@
           continue;
         }
 
-        // 特例：BKN
-        let bknMatch = cleanLine.match(/^(BKN)\s*[$＄]?\s*(\d{3})$/i);
+        // 特例：BKN報價
+        let bknMatch = cleanLine.match(/^(BKN)\s*[$＄]?\s*(\d{3})/i);
         if (bknMatch) {
           results.push({
             vendor,
