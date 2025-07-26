@@ -36,6 +36,7 @@
       const results = [];
 
       let item = "";
+      let currentGrade = "";
 
       for (const line of lines) {
         const cleanLine = line.trim();
@@ -55,13 +56,21 @@
           }
         }
 
-        // 規格+價格，支援 *, 空格, 元，件，括號後綴都略過
+        
+      // 等級判斷
+      if (/^(A|AB|B)$/i.test(cleanLine)) {
+        currentGrade = cleanLine.toUpperCase();
+        continue;
+      }
+
+      // 規格+價格，支援 *, 空格, 元，件，括號後綴都略過
+    
         let match = cleanLine.match(/^(\d{2,3}\/\d{2,3})\s*[-*xＸ＊$＄]?\s*(\d{3})/i);
         if (match) {
           results.push({
             vendor,
             date,
-            item: item || "蝦仁",
+            item: (item || "蝦仁") + (currentGrade ? currentGrade + "級" : ""),
             spec: match[1],
             price: parseInt(match[2])
           });
@@ -74,7 +83,7 @@
           results.push({
             vendor,
             date,
-            item: item || "蝦仁",
+            item: (item || "蝦仁") + (currentGrade ? currentGrade + "級" : ""),
             spec: "BKN",
             price: parseInt(bknMatch[2])
           });
