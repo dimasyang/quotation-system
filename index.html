@@ -40,7 +40,7 @@
       for (const line of lines) {
         const cleanLine = line.trim();
 
-        // 抓第一個含「蝦仁」且能辨識出以「蝦仁」結尾的詞為品名
+        // 品名：找第一行包含「蝦仁」的詞語（最後一個字是仁）
         if (!item && cleanLine.includes("蝦仁")) {
           const matchItem = cleanLine.match(/([\u4e00-\u9fa5]{2,10}蝦仁)/);
           if (matchItem) {
@@ -50,8 +50,8 @@
           }
         }
 
-        // 找規格+價格，容許多種 * x Ｘ ＊ 符號與空白
-        const match = cleanLine.match(/^(\d{2,3}\/\d{2,3})\s*[*xＸ＊]\s*(\d{3})$/i);
+        // 規格價格：支援 21/25*445、21/25 ＄445、21/25 $ 445
+        let match = cleanLine.match(/^(\d{2,3}\/\d{2,3})\s*[*xＸ＊$＄]?\s*(\d{3})$/i);
         if (match) {
           results.push({
             vendor,
@@ -60,6 +60,20 @@
             spec: match[1],
             price: parseInt(match[2])
           });
+          continue;
+        }
+
+        // 特例：BKN
+        let bknMatch = cleanLine.match(/^(BKN)\s*[$＄]?\s*(\d{3})$/i);
+        if (bknMatch) {
+          results.push({
+            vendor,
+            date,
+            item: item || "蝦仁",
+            spec: "BKN",
+            price: parseInt(bknMatch[2])
+          });
+          continue;
         }
       }
 
