@@ -1,4 +1,3 @@
-
 body { font-family: sans-serif; padding: 2em; background: #f9f9f9; }
 h1 { color: #006080; }
 input, textarea { width: 100%; margin-bottom: 1em; }
@@ -6,3 +5,62 @@ table { width: 100%; border-collapse: collapse; }
 th, td { border: 1px solid #ccc; padding: 6px; }
 button { margin-right: 10px; margin-bottom: 10px; }
 .nav-buttons { margin-bottom: 20px; }
+
+/* === RWD enhancements (no functionality changes) === */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 16px;
+  line-height: 1.5;
+}
+
+/* Make headings adapt */
+h1, h2, h3 {
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+/* Inputs and textareas already 100% width; ensure touch-friendly size */
+input, textarea, button {
+  font: inherit;
+}
+
+/* Tables: allow horizontal scroll on small screens */
+table {
+  max-width: 100%;
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+th, td {
+  white-space: nowrap;
+}
+
+/* Make long preformatted blocks wrap nicely */
+pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Buttons wrap on small screens */
+button {
+  display: inline-block;
+}
+
+/* Larger screens: restore normal table display */
+@media (min-width: 768px) {
+  table {
+    display: table;
+    overflow: visible;
+  }
+  th, td {
+    white-space: normal;
+  }
+}
+
+/* Small screens: slightly reduce paddings to fit */
+@media (max-width: 480px) {
+  th, td { padding: 8px 6px; }
+  textarea { min-height: 200px; }
+}

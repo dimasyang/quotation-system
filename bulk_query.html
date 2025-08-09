@@ -1,1 +1,87 @@
 
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>自由報價查詢</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h2>自由報價查詢</h2>
+  <label>輸入品名關鍵字：
+    <input id="keyword" placeholder="例如：旭蟹、甜蝦" />
+  </label>
+  <button onclick="search()">查詢</button>
+  <button onclick="deleteSelected()">刪除所選資料</button>
+  <button onclick="location.href='index.html'">返回首頁</button>
+  <div id="result"></div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAYmv1mt2QV0Ex0J1PlASfZjA3bdBvIJws",
+      authDomain: "haishang-a09c3.firebaseapp.com",
+      projectId: "haishang-a09c3"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let cacheDocs = [];
+
+    function search() {
+      const keyword = document.getElementById("keyword").value.trim();
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = "查詢中...";
+      cacheDocs = [];
+
+      db.collection("free_quotes").get().then((querySnapshot) => {
+        let html = "<table border='1'><tr><th><input type='checkbox' id='selectAll' onchange='toggleAll(this)'></th><th>廠商</th><th>日期</th><th>內容</th></tr>";
+        querySnapshot.forEach((doc) => {
+          const d = doc.data();
+          const docID = doc.id;
+          if (keyword === "" || d.rawText?.includes(keyword)) {
+            cacheDocs.push({ id: docID, data: d });
+            html += `<tr>
+              <td><input type="checkbox" value="${docID}"></td>
+              <td>${d.vendor || ""}</td>
+              <td>${d.date || ""}</td>
+              <td style="white-space:pre-wrap">${d.rawText || ""}</td>
+            </tr>`;
+          }
+        });
+        html += "</table>";
+        resultDiv.innerHTML = html;
+        if (cacheDocs.length === 0) {
+          resultDiv.innerHTML = "❌ 找不到資料";
+        }
+      }).catch((err) => {
+        resultDiv.innerHTML = "❌ 查詢錯誤：" + err.message;
+      });
+    }
+
+    function toggleAll(source) {
+      document.querySelectorAll("input[type=checkbox]").forEach(cb => cb.checked = source.checked);
+    }
+
+    function deleteSelected() {
+      const checked = Array.from(document.querySelectorAll("input[type=checkbox]:checked"));
+      if (checked.length === 0) {
+        alert("請先勾選要刪除的資料");
+        return;
+      }
+
+      if (!confirm("確定要刪除所選資料嗎？此動作無法復原")) return;
+
+      let deletes = checked.map(c => db.collection("free_quotes").doc(c.value).delete());
+      Promise.all(deletes).then(() => {
+        alert("✅ 刪除成功");
+        search();
+      }).catch(err => {
+        alert("❌ 刪除失敗：" + err.message);
+      });
+    }
+  </script>
+</body>
+</html>
