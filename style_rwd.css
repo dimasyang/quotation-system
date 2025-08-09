@@ -65,3 +65,32 @@ thead th{position:sticky;top:0;background:#f9fafb;z-index:1}
 @media(min-width:640px){.dock{grid-template-columns:repeat(4,1fr)}}
 
 .notice{font-size:12px;color:var(--muted);margin-top:8px}
+
+
+/* Make anchor buttons look like real buttons */
+a.btn, a.btn:link, a.btn:visited {
+  display:inline-block;
+  text-decoration:none;
+  color:inherit;
+  text-align:center;
+  line-height:1.2;
+}
+a.btn:hover { filter: brightness(0.98); }
+a.btn:active { transform: translateY(1px); }
+
+
+/* === Unify button/anchor visuals (placed at end for higher priority) === */
+a.btn, .btn {
+  display: block;
+  width: 100%;
+  padding: 12px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--bd);
+  background: #f3f4f6;
+  color: var(--text);
+  text-decoration: none;
+  text-align: center;
+  line-height: 1.2;
+}
+a.btn:hover, .btn:hover { filter: brightness(0.98); }
+a.btn:active, .btn:active { transform: translateY(1px); }

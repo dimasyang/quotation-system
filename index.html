@@ -40,7 +40,14 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
-    const firebaseConfig = { apiKey:"AIzaSyAYmv1mt2QV0Ex0J1PlASfZjA3bdBvIJws", authDomain:"haishang-a09c3.firebaseapp.com", projectId:"haishang-a09c3" };
+    const firebaseConfig = {
+  apiKey: "AIzaSyAYmv1mt2QV0Ex0J1PlASfZjA3bdBvIJws",
+  authDomain: "haishang-a09c3.firebaseapp.com",
+  projectId: "haishang-a09c3",
+  storageBucket: "haishang-a09c3.firebasestorage.app",
+  messagingSenderId: "457535470987",
+  appId: "1:457535470987:web:c94320eb296696e132838e"
+};
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 

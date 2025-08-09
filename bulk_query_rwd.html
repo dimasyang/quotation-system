@@ -9,6 +9,7 @@
 <body>
   <div class="container">
     <h1>自由報價查詢</h1>
+    <p class="notice"><strong>Firestore 連線狀態：</strong><span id="fsStatus">檢查中…</span></p>
     <section class="card">
       <div class="grid">
         <label><span>品名關鍵字</span><input id="keyword" placeholder="例如：旭蟹、甜蝦" /></label>
@@ -16,7 +17,7 @@
       <div class="actions">
         <button class="btn primary" id="btnSearch">查詢</button>
         <button class="btn danger" id="btnDelete">刪除所選</button>
-        <button class="btn" id="btnHome">返回首頁</button>
+        <a class="btn" id="btnHome" href="index.html">返回首頁</a>
       </div>
 
       <div class="table-wrap">
@@ -40,15 +41,29 @@
   <nav class="dock">
     <button class="btn primary" id="dockSearch">查詢</button>
     <button class="btn danger" id="dockDelete">刪除所選</button>
-    <button class="btn" id="dockHome">首頁</button>
+    <a class="btn" id="dockHome" href="index.html">首頁</a>
   </nav>
 
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
-    const firebaseConfig = { apiKey:"AIzaSyAYmv1mt2QV0Ex0J1PlASfZjA3bdBvIJws", authDomain:"haishang-a09c3.firebaseapp.com", projectId:"haishang-a09c3" };
+    const firebaseConfig = {
+  apiKey: "AIzaSyAYmv1mt2QV0Ex0J1PlASfZjA3bdBvIJws",
+  authDomain: "haishang-a09c3.firebaseapp.com",
+  projectId: "haishang-a09c3",
+  storageBucket: "haishang-a09c3.firebasestorage.app",
+  messagingSenderId: "457535470987",
+  appId: "1:457535470987:web:c94320eb296696e132838e"
+};
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    // Connectivity check
+    (function() {
+      const el = document.getElementById('fsStatus');
+      db.collection("free_quotes").limit(1).get()
+        .then(_ => { if(el) el.textContent = "✅ 已連線"; })
+        .catch(err => { if(el) el.textContent = "❌ 無法連線：" + (err && err.message ? err.message : err); });
+    })();
     let cacheDocs = [];
 
     function renderRows(list){
@@ -65,15 +80,42 @@
       });
     }
 
-    function search(){
+    
+    function search() {
       const keyword = document.getElementById("keyword").value.trim();
       const tbody = document.getElementById("resultBody");
       tbody.innerHTML = "<tr><td colspan='4'>查詢中...</td></tr>";
       cacheDocs = [];
-
-      db.collection("free_quotes").get().then(qs=>{
-        const docs = [];
-        qs.forEach(doc=> docs.push({id: doc.id, data: doc.data()}));
+      db.collection("free_quotes").get()
+        .then(qs => {
+          const docs = [];
+          qs.forEach(doc => docs.push({ id: doc.id, data: doc.data() }));
+          cacheDocs = docs.filter(d => keyword === "" || (d.data.rawText||"").includes(keyword));
+          cacheDocs.sort((a,b) => {
+            const da = new Date(a.data.date || "1970-01-01");
+            const dbb = new Date(b.data.date || "1970-01-01");
+            return dbb - da;
+          });
+          if (cacheDocs.length === 0) { tbody.innerHTML = "<tr><td colspan='4'>❌ 找不到資料</td></tr>"; return; }
+          const rows = cacheDocs.map(d => `
+            <tr>
+              <td><input type="checkbox" class="row-check" value="${d.id}"></td>
+              <td>${d.data.vendor || ""}</td>
+              <td>${d.data.date || ""}</td>
+              <td style="white-space:pre-wrap">${d.data.rawText || ""}</td>
+            </tr>
+          `).join("");
+          tbody.innerHTML = rows;
+        })
+        .catch(err => {
+          tbody.innerHTML = "<tr><td colspan='4'>讀取失敗：" + (err && err.message ? err.message : err) + "</td></tr>";
+        });
+    }
+));
+      }).catch(err => {
+      const tbody = document.getElementById("resultBody");
+      if (tbody) tbody.innerHTML = "<tr><td colspan='6'>讀取失敗：" + (err && err.message ? err.message : err) + "</td></tr>";
+    });
         docs.forEach(d=>{
           if (keyword === "" || (d.data.rawText||"").includes(keyword)) cacheDocs.push(d);
         });
@@ -102,8 +144,8 @@
     document.getElementById("dockSearch").onclick = search;
     document.getElementById("btnDelete").onclick = deleteSelected;
     document.getElementById("dockDelete").onclick = deleteSelected;
-    document.getElementById("btnHome").onclick = ()=> location.href='index_rwd.html';
-    document.getElementById("dockHome").onclick = ()=> location.href='index_rwd.html';
+    document.getElementById("btnHome").onclick = ()=> location.href='index.html';
+    document.getElementById("dockHome").onclick = ()=> location.href='index.html';
     document.getElementById("selectAll").onchange = toggleAll;
   </script>
 <script src="./link-patch.js"></script>
