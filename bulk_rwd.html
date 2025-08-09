@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>自由報價上傳（RWD）</title>
+  <link rel="stylesheet" href="style_rwd.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>自由報價上傳</h1>
+    <section class="card">
+      <div class="grid">
+        <label><span>廠商名稱</span><input id="vendor" /></label>
+        <label><span>報價日期</span><input type="date" id="date" /></label>
+        <label style="grid-column:1/-1"><span>報價內容（請貼上整段文字）</span><textarea id="text"></textarea></label>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="btnUpload">上傳</button>
+        <button class="btn" id="btnQuery">前往自由報價查詢</button>
+        <button class="btn" id="btnHome">返回首頁</button>
+      </div>
+      <div id="status" class="notice"></div>
+    </section>
+  </div>
+
+  <nav class="dock">
+    <button class="btn primary" id="dockUpload">上傳</button>
+    <button class="btn" id="dockQuery">查詢</button>
+    <button class="btn" id="dockHome">首頁</button>
+  </nav>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = { apiKey:"AIzaSyAYmv1mt2QV0Ex0J1PlASfZjA3bdBvIJws", authDomain:"haishang-a09c3.firebaseapp.com", projectId:"haishang-a09c3" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    function upload(){
+      const vendor = document.getElementById("vendor").value.trim();
+      const date = document.getElementById("date").value;
+      const text = document.getElementById("text").value.trim();
+      if (!vendor || !date || !text) { alert("請填寫所有欄位"); return; }
+      db.collection("free_quotes").add({ vendor, date, rawText: text, createdAt: new Date() })
+        .then(()=> document.getElementById("status").innerText = "✅ 上傳成功！")
+        .catch(err=> document.getElementById("status").innerText = "❌ 上傳失敗：" + err.message);
+    }
+
+    // Bind
+    ["btnUpload","dockUpload"].forEach(id=> document.getElementById(id).onclick = upload);
+    ["btnQuery","dockQuery"].forEach(id=> document.getElementById(id).onclick = ()=> location.href='bulk_query_rwd.html');
+    ["btnHome","dockHome"].forEach(id=> document.getElementById(id).onclick = ()=> location.href='index_rwd.html');
+  </script>
+<script src="./link-patch.js"></script>
+</body>
+</html>

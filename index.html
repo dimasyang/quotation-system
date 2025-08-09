@@ -1,30 +1,46 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <title>海上先生 - 自動解析報價</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>海上先生 - 自動解析報價（RWD）</title>
+  <link rel="stylesheet" href="style_rwd.css" />
 </head>
 <body>
-  <h2>海上先生 - 報價自動解析系統</h2>
-  <label>廠商名稱：<input id="vendor" /></label>
-  <label>報價日期：<input id="date" type="date" /></label><br /><br />
-  <textarea id="rawText" rows="15" cols="80" placeholder="請貼上整段報價資料"></textarea><br />
-  <button onclick="parseAndUpload()">解析並上傳</button>
-  <button onclick="location.href='query.html'">查詢報價</button>
-  <button onclick="location.href='bulk.html'">自由輸入</button>
-  <button onclick="location.href='bulk_query.html'">查詢自由報價</button>
-  <div id="status"></div>
+  <div class="container">
+    <header>
+      <h1>海上先生｜報價自動解析</h1>
+      <p class="lead">貼上報價文字 → 一鍵解析 → 上傳到 Firestore</p>
+    </header>
 
+    <section class="card">
+      <div class="grid">
+        <label><span>廠商名稱</span><input id="vendor" placeholder="請輸入廠商名稱" /></label>
+        <label><span>報價日期</span><input id="date" type="date" /></label>
+        <label style="grid-column:1/-1"><span>報價內容</span><textarea id="rawText" placeholder="請貼上整段報價資料"></textarea></label>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="btnUpload">解析並上傳</button>
+        <button class="btn" id="btnToQuery">查詢報價</button>
+        <button class="btn" id="btnToBulk">自由輸入</button>
+        <button class="btn" id="btnToBulkQ">查詢自由報價</button>
+      </div>
+      <div id="status" class="notice"></div>
+    </section>
+  </div>
+
+  <nav class="dock">
+    <button class="btn primary" id="dockUpload">解析並上傳</button>
+    <button class="btn" id="dockToQuery">查詢報價</button>
+    <button class="btn" id="dockToBulk">自由輸入</button>
+    <button class="btn" id="dockToBulkQ">查詢自由報價</button>
+  </nav>
+
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyAYmv1mt2QV0Ex0J1PlASfZjA3bdBvIJws",
-      authDomain: "haishang-a09c3.firebaseapp.com",
-      projectId: "haishang-a09c3",
-    };
+    const firebaseConfig = { apiKey:"AIzaSyAYmv1mt2QV0Ex0J1PlASfZjA3bdBvIJws", authDomain:"haishang-a09c3.firebaseapp.com", projectId:"haishang-a09c3" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
@@ -34,81 +50,49 @@
       const date = document.getElementById("date").value;
       const lines = raw.split("\n");
       const results = [];
-
       let item = "";
       let currentGrade = "";
 
       for (const line of lines) {
         const cleanLine = line.trim();
-
-        // 品名：從所有匹配中抓最後一個「蝦仁」結尾的中文詞，支援空格
         if (!item && cleanLine.includes("蝦仁")) {
-          
-    const matchItem = cleanLine.match(/([\u4e00-\u9fa5]{1,10}(?:\s)?白蝦仁|草蝦仁|沙蝦仁|海蝦仁|蝦仁)/);
-    
-          if (matchItem) {
-            item = matchItem[1].replace(/\s/g, "");
-          } else {
+          const matchItem = cleanLine.match(/([\u4e00-\u9fa5]{1,10}(?:\s)?白蝦仁|草蝦仁|沙蝦仁|海蝦仁|蝦仁)/);
+          if (matchItem) { item = matchItem[1].replace(/\s/g, ""); }
+          else {
             const allMatches = [...cleanLine.matchAll(/([\u4e00-\u9fa5]{1,10}蝦仁)/g)];
-            if (allMatches.length > 0) {
-              item = allMatches[allMatches.length - 1][1];
-            }
+            if (allMatches.length > 0) item = allMatches[allMatches.length - 1][1];
           }
         }
 
-        
-      // 等級判斷
-      if (/^(A|AB|B)$/i.test(cleanLine)) {
-        currentGrade = cleanLine.toUpperCase();
-        continue;
-      }
+        if (/^(A|AB|B)$/i.test(cleanLine)) { currentGrade = cleanLine.toUpperCase(); continue; }
 
-      // 規格+價格，支援 *, 空格, 元，件，括號後綴都略過
-    
         let match = cleanLine.match(/^(\d{2,3}\/\d{2,3})\s*[-*xＸ＊$＄]?\s*(\d{3})/i);
         if (match) {
-          results.push({
-            vendor,
-            date,
-            item: (item || "蝦仁") + (currentGrade ? currentGrade + "級" : ""),
-            spec: match[1],
-            price: parseInt(match[2])
-          });
+          results.push({ vendor, date, item: (item || "蝦仁") + (currentGrade ? currentGrade + "級" : ""), spec: match[1], price: parseInt(match[2]) });
           continue;
         }
-
-        // 特例：BKN報價
         let bknMatch = cleanLine.match(/^(BKN)\s*[$＄]?\s*(\d{3})/i);
         if (bknMatch) {
-          results.push({
-            vendor,
-            date,
-            item: (item || "蝦仁") + (currentGrade ? currentGrade + "級" : ""),
-            spec: "BKN",
-            price: parseInt(bknMatch[2])
-          });
+          results.push({ vendor, date, item: (item || "蝦仁") + (currentGrade ? currentGrade + "級" : ""), spec: "BKN", price: parseInt(bknMatch[2]) });
           continue;
         }
       }
 
       const status = document.getElementById("status");
-      if (results.length === 0) {
-        status.innerText = "❌ 無法解析任何品項，請檢查格式";
-        return;
-      }
+      if (results.length === 0) { status.innerText = "❌ 無法解析任何品項，請檢查格式"; return; }
 
       const batch = db.batch();
-      results.forEach(obj => {
-        const docRef = db.collection("prices").doc();
-        batch.set(docRef, obj);
-      });
-
-      batch.commit().then(() => {
-        status.innerText = `✅ 成功上傳 ${results.length} 筆報價資料`;
-      }).catch(err => {
-        status.innerText = "❌ 上傳失敗：" + err.message;
-      });
+      results.forEach(obj => { const ref = db.collection("prices").doc(); batch.set(ref, obj); });
+      batch.commit().then(()=> status.innerText = `✅ 成功上傳 ${results.length} 筆報價資料`)
+                    .catch(err=> status.innerText = "❌ 上傳失敗：" + err.message);
     }
+
+    // Bind buttons
+    ["btnUpload","dockUpload"].forEach(id=> document.getElementById(id).onclick = parseAndUpload);
+    ["btnToQuery","dockToQuery"].forEach(id=> document.getElementById(id).onclick = ()=> location.href='query_rwd.html');
+    ["btnToBulk","dockToBulk"].forEach(id=> document.getElementById(id).onclick = ()=> location.href='bulk_rwd.html');
+    ["btnToBulkQ","dockToBulkQ"].forEach(id=> document.getElementById(id).onclick = ()=> location.href='bulk_query_rwd.html');
   </script>
+<script src="./link-patch.js"></script>
 </body>
 </html>

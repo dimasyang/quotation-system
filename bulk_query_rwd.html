@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>自由報價查詢（RWD）</title>
+  <link rel="stylesheet" href="style_rwd.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>自由報價查詢</h1>
+    <section class="card">
+      <div class="grid">
+        <label><span>品名關鍵字</span><input id="keyword" placeholder="例如：旭蟹、甜蝦" /></label>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="btnSearch">查詢</button>
+        <button class="btn danger" id="btnDelete">刪除所選</button>
+        <button class="btn" id="btnHome">返回首頁</button>
+      </div>
+
+      <div class="table-wrap">
+        <div class="scroll-x">
+          <table id="resultTable">
+            <thead>
+              <tr>
+                <th><input type="checkbox" id="selectAll"></th>
+                <th>廠商</th>
+                <th>日期</th>
+                <th>內容</th>
+              </tr>
+            </thead>
+            <tbody id="resultBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <nav class="dock">
+    <button class="btn primary" id="dockSearch">查詢</button>
+    <button class="btn danger" id="dockDelete">刪除所選</button>
+    <button class="btn" id="dockHome">首頁</button>
+  </nav>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = { apiKey:"AIzaSyAYmv1mt2QV0Ex0J1PlASfZjA3bdBvIJws", authDomain:"haishang-a09c3.firebaseapp.com", projectId:"haishang-a09c3" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    let cacheDocs = [];
+
+    function renderRows(list){
+      const tbody = document.getElementById("resultBody");
+      tbody.innerHTML = "";
+      list.forEach(({id, data})=>{
+        const tr = document.createElement("tr");
+        tr.innerHTML = \`
+          <td><input type="checkbox" class="row-check" value="\${id}"></td>
+          <td>\${data.vendor || ""}</td>
+          <td>\${data.date || ""}</td>
+          <td style="white-space:pre-wrap">\${data.rawText || ""}</td>\`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function search(){
+      const keyword = document.getElementById("keyword").value.trim();
+      const tbody = document.getElementById("resultBody");
+      tbody.innerHTML = "<tr><td colspan='4'>查詢中...</td></tr>";
+      cacheDocs = [];
+
+      db.collection("free_quotes").get().then(qs=>{
+        const docs = [];
+        qs.forEach(doc=> docs.push({id: doc.id, data: doc.data()}));
+        docs.forEach(d=>{
+          if (keyword === "" || (d.data.rawText||"").includes(keyword)) cacheDocs.push(d);
+        });
+        if (cacheDocs.length === 0) tbody.innerHTML = "<tr><td colspan='4'>❌ 找不到資料</td></tr>";
+        else renderRows(cacheDocs);
+      }).catch(err=>{
+        tbody.innerHTML = "<tr><td colspan='4'>❌ 查詢錯誤："+err.message+"</td></tr>";
+      });
+    }
+
+    function toggleAll(e){
+      document.querySelectorAll(".row-check").forEach(cb=> cb.checked = e.target.checked);
+    }
+
+    function deleteSelected(){
+      const checked = Array.from(document.querySelectorAll(".row-check:checked"));
+      if (!checked.length) return alert("請先勾選要刪除的資料");
+      if (!confirm("確定要刪除所選資料嗎？此動作無法復原")) return;
+      Promise.all(checked.map(c=> db.collection("free_quotes").doc(c.value).delete()))
+        .then(()=> { alert("✅ 刪除成功"); search(); })
+        .catch(err=> alert("❌ 刪除失敗："+err.message));
+    }
+
+    // Bind
+    document.getElementById("btnSearch").onclick = search;
+    document.getElementById("dockSearch").onclick = search;
+    document.getElementById("btnDelete").onclick = deleteSelected;
+    document.getElementById("dockDelete").onclick = deleteSelected;
+    document.getElementById("btnHome").onclick = ()=> location.href='index_rwd.html';
+    document.getElementById("dockHome").onclick = ()=> location.href='index_rwd.html';
+    document.getElementById("selectAll").onchange = toggleAll;
+  </script>
+<script src="./link-patch.js"></script>
+</body>
+</html>
